@@ -230,8 +230,8 @@ struct list_head *mergesort_list(struct list_head *head, bool descend)
     // struct list_head *mid = slow;
     slow->next = NULL;
     slow->next->prev = NULL;
-    struct list_head *left = mergesort_list(head);
-    struct list_head *right = mergesort_list(slow);
+    struct list_head *left = mergesort_list(head, descend);
+    struct list_head *right = mergesort_list(slow, descend);
     return mergeTwoLists(left, right, descend);
 }
 /* Sort elements of queue in ascending/descending order */
@@ -239,8 +239,18 @@ void q_sort(struct list_head *head, bool descend)
 {
     if (!head || head->next == head)
         return;
-    struct list_head *result = mergesort_list(head, descend);
-    return result;
+    struct list_head *tmp = head->next;
+    head->prev->next = NULL;
+    tmp->prev = NULL;
+    struct list_head *result = mergesort_list(tmp, descend);
+    struct list_head *tail = result;
+    while (tail->next != NULL) {
+        tail = tail->next;
+    }
+    head->next = result;
+    result->prec = head;
+    head->prev = tail;
+    tail->next = head;
 }
 
 /* Remove every node which has a node with a strictly less value
