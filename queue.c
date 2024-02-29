@@ -114,9 +114,9 @@ bool q_delete_mid(struct list_head *head)
     // https://leetcode.com/problems/delete-the-middle-node-of-a-linked-list/
     if (!head || head->next == head || head->next->next == head)
         return false;
-    struct list_head *slow = head;
-    for (struct list_head *fast = head; fast != head && fast->next != head;
-         fast = fast->next->next) {
+    struct list_head *slow = head->next;
+    for (struct list_head *fast = head->next;
+         fast != head && fast->next != head; fast = fast->next->next) {
         slow = slow->next;
     }
 
