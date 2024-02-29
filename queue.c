@@ -209,15 +209,16 @@ static struct list_head *mergeTwoLists(struct list_head *List1,
             element_t *l2 = list_entry(List2, element_t, list);
             if (strcmp(l1->value, l2->value) < 0) {
                 *ptr = List1;
-                List1 = L1st1->next;
+                List1 = List1->next;
             } else {
                 *ptr = List2;
                 List2 = List2->next;
             }
         }
     }
+    return head;
 }
-struct list_head *mergesort_list(struct list_head *head)
+struct list_head *mergesort_list(struct list_head *head, bool descend)
 {
     if (!head || head->next == head)
         return head;
@@ -231,7 +232,7 @@ struct list_head *mergesort_list(struct list_head *head)
     slow->next->prev = NULL;
     struct list_head *left = mergesort_list(head);
     struct list_head *right = mergesort_list(slow);
-    return mergeTwoLists(left, right);
+    return mergeTwoLists(left, right, descend);
 }
 /* Sort elements of queue in ascending/descending order */
 void q_sort(struct list_head *head, bool descend)
