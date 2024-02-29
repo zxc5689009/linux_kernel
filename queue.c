@@ -313,7 +313,7 @@ struct list_head *mergesort_list(struct list_head *head, bool descend)
     sorted->prev = current;
 
     return sorted;
-    /*  for (struct list_head *fast = head->next;
+      for (struct list_head *fast = head->next;
            fast != head && fast->next != head; fast = fast->next->next) {
           slow = slow->next;
       }*/
