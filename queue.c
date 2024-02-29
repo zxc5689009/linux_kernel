@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+// 0
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
  * but some of them cannot occur. You can suppress them by adding the
  * following line.
@@ -31,6 +31,7 @@ void q_free(struct list_head *l)
         list_del(&entry->list);
         q_release_element(entry);
     }
+    free(l);
 }
 
 /* Insert an element at head of queue */
@@ -70,11 +71,11 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
         return NULL;
     struct list_head *first = head->next;
     element_t *element = list_entry(first, element_t, list);
-    list_del(first);
     if (sp && bufsize) {
         strncpy(sp, element->value, bufsize - 1);
         sp[bufsize - 1] = '\0';
     }
+    list_del(first);
     return element;
 }
 
@@ -140,12 +141,16 @@ void q_swap(struct list_head *head)
     if (!head)
         return;
     struct list_head *current = head->next;
-    head->next = current->next;
-    while (current != head && current->next != head) {
-        struct list_head *next = current->next;
-        list_del(next);
-        list_add(next, current);
-        current = next->next;
+    struct list_head *next = current->next;
+    while (current != head && next != head) {
+        current->prev->next = next;
+        current->next = next->next;
+        next->next->prev = current;
+        next->next = current;
+        next->prev = current->prev;
+        current->prev = next;
+        current = current->next;
+        next = current->next;
     }
     // https://leetcode.com/problems/swap-nodes-in-pairs/
 }
