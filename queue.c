@@ -248,7 +248,7 @@ void q_sort(struct list_head *head, bool descend)
         tail = tail->next;
     }
     head->next = result;
-    result->prec = head;
+    result->prev = head;
     head->prev = tail;
     tail->next = head;
 }
