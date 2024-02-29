@@ -163,12 +163,13 @@ void q_reverse(struct list_head *head)
 {
     if (!head || head->next == head)
         return;
-    struct list_head *current = head->next;
+    struct list_head *current = head;
+    struct list_head *next = current->next;
     do {
-        struct list_head *next = current->next;
         current->next = current->prev;
         current->prev = next;
         current = next;
+        next = next->next;
     } while (current != head);
 }
 
