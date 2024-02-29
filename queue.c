@@ -1,8 +1,8 @@
+#include "queue.h"
+#include <list.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "queue.h"
 
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
  * but some of them cannot occur. You can suppress them by adding the
@@ -36,7 +36,7 @@ void q_free(struct list_head *l)
 /* Insert an element at head of queue */
 bool q_insert_head(struct list_head *head, char *s)
 {
-    element_t *new = malloc(sizeof(struct element_t));
+    element_t *new = malloc(sizeof(element_t));
     if (!new)
         return false;
     new->value = strdup(s);
@@ -51,7 +51,7 @@ bool q_insert_head(struct list_head *head, char *s)
 /* Insert an element at tail of queue */
 bool q_insert_tail(struct list_head *head, char *s)
 {
-    element_t *new = malloc(sizeof(struct element_t));
+    element_t *new = malloc(sizeof(element_t));
     if (!new)
         return false;
     new->value = strdup(s);
@@ -119,7 +119,7 @@ bool q_delete_mid(struct list_head *head)
         indir = &(*indir)->next;
     }
     element_t *middle_element = list_entry(*indir, element_t, list);
-    list_del(middle_element->list);
+    list_del(&middle_element->list);
     q_release_element(middle_element);
     return true;
 }
