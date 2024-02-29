@@ -222,17 +222,37 @@ struct list_head *mergesort_list(struct list_head *head, bool descend)
 {
     if (!head || head->next == head)
         return head;
-    struct list_head *slow = head->next;
-    for (struct list_head *fast = head->next;
-         fast != head && fast->next != head; fast = fast->next->next) {
+    struct list_head *tail = head->prev;
+    tail->next = NULL;
+    head->prev = NULL;
+    struct list_head *slow = head, *fast = head, *tmp = NULL;
+    while (fast != NULL && fast->next != NULL) {
+        fast = fast->next->next;
         slow = slow->next;
     }
-    // struct list_head *mid = slow;
+    tmp = slow->next;
     slow->next = NULL;
-    slow->next->prev = NULL;
-    struct list_head *left = mergesort_list(head, descend);
-    struct list_head *right = mergesort_list(slow, descend);
-    return mergeTwoLists(left, right, descend);
+    struct list_head *left_part = mergesort_list(head, descend);
+    struct list_head *right_part = mergesort_list(tmp, descend);
+    struct list_head *sorted = mergeTwoLists(left_part, right_part, descend);
+    struct list_head *current = sorted;
+    while (current->next != NULL) {
+        current = current->next;
+    }
+    current->next = sorted;
+    sorted->prev = current;
+
+    return sorted;
+    /*  for (struct list_head *fast = head->next;
+           fast != head && fast->next != head; fast = fast->next->next) {
+          slow = slow->next;
+      }*/
+    // struct list_head *mid = slow;
+    /* slow->next = NULL;
+     slow->next->prev = NULL;
+     struct list_head *left = mergesort_list(head, descend);
+     struct list_head *right = mergesort_list(slow, descend);
+     return mergeTwoLists(left, right, descend);*/
 }
 /* Sort elements of queue in ascending/descending order */
 void q_sort(struct list_head *head, bool descend)
