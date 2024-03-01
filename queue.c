@@ -185,7 +185,7 @@ void q_reverseK(struct list_head *head, int k)
     // https://leetcode.com/problems/reverse-nodes-in-k-group/
 }
 
-/*static struct list_head *mergeTwoLists(struct list_head *List1,
+static struct list_head *mergeTwoLists(struct list_head *List1,
                                        struct list_head *List2,
                                        bool descend)
 {
@@ -216,131 +216,39 @@ void q_reverseK(struct list_head *head, int k)
             }
         }
     }
+    *ptr = (struct list_head *) ((uintptr_t) List1 | (uintptr_t) List2);
     return head;
-}*/
-struct list_head *mergeTwoLists(struct list_head *L1,
-                                struct list_head *L2,
-                                bool descend)
-{
-    struct list_head dummy;  // 创建一个哑节点作为结果链表的临时头部
-    struct list_head *tail = &dummy;  // 使用tail跟踪当前合并链表的最后一个节点
-
-    while (L1 != NULL && L2 != NULL) {
-        element_t *e1 = list_entry(L1, element_t, list);
-        element_t *e2 = list_entry(L2, element_t, list);
-        // 根据descend判断合并的顺序
-        bool cond = descend ? (strcmp(e1->value, e2->value) > 0)
-                            : (strcmp(e1->value, e2->value) < 0);
-
-        if (cond) {
-            tail->next = L1;  // 将L1的当前节点接到结果链表的尾部
-            L1 = L1->next;    // 移动L1到下一个节点
-        } else {
-            tail->next = L2;  // 将L2的当前节点接到结果链表的尾部
-            L2 = L2->next;    // 移动L2到下一个节点
-        }
-        tail = tail->next;  // 更新tail到结果链表的最后一个节点
-    }
-
-    // 将剩余的链表节点接到结果链表的尾部
-    tail->next = L1 ? L1 : L2;
-
-    // 重新建立循环结构，确保新的尾部节点指向结果链表的头部节点
-    // 首先找到合并后链表的尾部节点
-    while (tail->next) {
-        tail = tail->next;
-    }
-    // 将尾部节点的next指向头部节点，形成循环链表
-    tail->next = dummy.next;
-    // 更新头部节点的前驱指针
-    dummy.next->prev = tail;
-
-    return dummy.next;  // 返回结果链表的头部节点
 }
 
 struct list_head *mergesort_list(struct list_head *head, bool descend)
 {
-    if (!head || head->next == head) {
-        return head;
-    }
-
-    // 找到中间节点
-    struct list_head *slow = head, *fast = head;
-    while (fast->next != head && fast->next->next != head) {
-        slow = slow->next;
-        fast = fast->next->next;
-    }
-
-    // 断开链表
-    struct list_head *mid = slow->next;
-    slow->next = head;  // 左半部分结束，形成循环
-    head->prev = slow;
-    mid->prev->next = mid;  // 右半部分结束，形成循环
-    mid->prev = slow;
-
-    // 分别对左右两部分进行递归排序
-    struct list_head *left = mergesort_list(head, descend);
-    struct list_head *right = mergesort_list(mid, descend);
-
-    // 合并排序后的链表
-    struct list_head *sorted = mergeTwoLists(left, right, descend);
-
-    return sorted;
-}
-
-/*struct list_head *mergesort_list(struct list_head *head, bool descend)
-{
     if (!head || head->next == head)
         return head;
-    struct list_head *tail = head->prev;
-    tail->next = NULL;
-    head->prev = NULL;
-    struct list_head *slow = head, *fast = head, *tmp = NULL;
-    while (fast != NULL && fast->next != NULL) {
+    struct list_head *fast = head, *slow = head;
+    while (fast && fast->next) {
         fast = fast->next->next;
         slow = slow->next;
     }
-    tmp = slow->next;
-    slow->next = NULL;
-    struct list_head *left_part = mergesort_list(head, descend);
-    struct list_head *right_part = mergesort_list(tmp, descend);
-    struct list_head *sorted = mergeTwoLists(left_part, right_part, descend);
-    struct list_head *current = sorted;
-    while (current->next != NULL) {
-        current = current->next;
-    }
-    current->next = sorted;
-    sorted->prev = current;
-
-    return sorted;
-      for (struct list_head *fast = head->next;
-           fast != head && fast->next != head; fast = fast->next->next) {
-          slow = slow->next;
-      }*/
-// struct list_head *mid = slow;
-/* slow->next = NULL;
- slow->next->prev = NULL;
- struct list_head *left = mergesort_list(head, descend);
- struct list_head *right = mergesort_list(slow, descend);
- return mergeTwoLists(left, right, descend);*/
-//}
+    slow->prev->next = NULL;
+    struct list_head *l1 = mergesort_list(head, descend);
+    struct list_head *l2 = mergesort_list(slow, descend);
+    return mergeTwoLists(l1, l2, descend);
+}
 /* Sort elements of queue in ascending/descending order */
 void q_sort(struct list_head *head, bool descend)
 {
     if (!head || head->next == head)
         return;
-    struct list_head *tmp = head->next;
     head->prev->next = NULL;
-    tmp->prev = NULL;
-    struct list_head *result = mergesort_list(tmp, descend);
-    struct list_head *tail = result;
-    while (tail->next != NULL) {
-        tail = tail->next;
+    head->next = mergesort_list(head->next, descend);
+    head->next->prev = head;
+    struct list_head *tmp = head;
+    while (tmp->next) {
+        tmp->next->prev = tmp;
+        tmp = tmp->next;
     }
-    head->next = result;
-    result->prev = head;
-    head->prev = tail;
-    tail->next = head;
+    head->prev = tmp;
+    tmp->next = head;
 }
 
 /* Remove every node which has a node with a strictly less value
