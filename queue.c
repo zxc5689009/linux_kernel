@@ -225,14 +225,16 @@ struct list_head *mergesort_list(struct list_head *head, bool descend)
 {
     if (!head || head->next == head)
         return head;
-    struct list_head *fast = head, *slow = head;
+    struct list_head *fast = head, *slow = head, *tmp = NULL;
     while (fast && fast->next) {
         fast = fast->next->next;
         slow = slow->next;
     }
-    slow->prev->next = NULL;
+    tmp = slow->next;
+    slow->next = head;
+    head->prev = slow;
     struct list_head *l1 = mergesort_list(head, descend);
-    struct list_head *l2 = mergesort_list(slow, descend);
+    struct list_head *l2 = mergesort_list(tmp, descend);
     return mergeTwoLists(l1, l2, descend);
 }
 /* Sort elements of queue in ascending/descending order */
