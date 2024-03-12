@@ -186,7 +186,7 @@ void q_reverseK(struct list_head *head, int k)
     // https://leetcode.com/problems/reverse-nodes-in-k-group/
 }
 
-static struct list_head *mergeTwoLists(struct list_head *List1,
+/*static struct list_head *mergeTwoLists(struct list_head *List1,
                                        struct list_head *List2,
                                        bool descend)
 {
@@ -219,26 +219,56 @@ static struct list_head *mergeTwoLists(struct list_head *List1,
     }
     *ptr = (struct list_head *) ((uintptr_t) List1 | (uintptr_t) List2);
     return head;
+}*/
+struct list_head *mergeTwoLists(struct list_head *L1,
+                                struct list_head *L2,
+                                bool descend)
+{
+    struct list_head *head = NULL, **tail = &head;
+
+    while (L1 && L2) {
+        element_t *l1 = list_entry(L1, element_t, list);
+        element_t *l2 = list_entry(L2, element_t, list);
+        // Move the declaration of `comp` inside the loop
+        int comp = strcmp(l1->value, l2->value);
+        if (descend ? comp < 0
+                    : comp > 0) {  // Adjust comparison for descending order
+            *tail = L2;
+            L2 = L2->next;
+        } else {
+            *tail = L1;
+            L1 = L1->next;
+        }
+        tail = &(*tail)->next;
+    }
+
+    *tail = L1 ? L1 : L2;
+    return head;
 }
 
 struct list_head *mergesort_list(struct list_head *head, bool descend)
 {
     if (!head || head->next == head)
         return head;
-    struct list_head *fast = head, *slow = head, *tmp = NULL;
+    // struct list_head *fast = head, *slow = head, *tmp = NULL;
+    struct list_head *slow = head;
+    *fast = head->next;
     while (fast && fast->next) {
         fast = fast->next->next;
         slow = slow->next;
     }
-    tmp = slow->next;
-    slow->next = head;
-    head->prev = slow;
-    struct list_head *l1 = mergesort_list(head, descend);
-    struct list_head *l2 = mergesort_list(tmp, descend);
-    return mergeTwoLists(l1, l2, descend);
+    // tmp = slow->next;
+    // slow->next = head;
+    // head->prev = slow;
+    slow->next = NULL;
+    // struct list_head *l1 = mergesort_list(head, descend);
+    // struct list_head *l2 = mergesort_list(tmp, descend);
+    struct list_head *left = mergesort_list(head, descend);
+    struct list_head *right = mergesort_list(mid, descend);
+    return mergeTwoLists(left, right, descend);
 }
 /* Sort elements of queue in ascending/descending order */
-void q_sort(struct list_head *head, bool descend)
+/*void q_sort(struct list_head *head, bool descend)
 {
     if (!head || head->next == head)
         return;
@@ -252,6 +282,29 @@ void q_sort(struct list_head *head, bool descend)
     }
     head->prev = tmp;
     tmp->next = head;
+}*/
+void q_sort(struct list_head *head, bool descend)
+{
+    if (!head || head->next == head)
+        return;  // Empty or single element
+
+    // Break the circular link
+    struct list_head *tail = head->prev;
+    tail->next = NULL;
+    head->prev = NULL;
+
+    // Sort the list
+    struct list_head *sorted = mergesort_list(head->next, descend);
+
+    // Reattach the sorted list to head and make it circular
+    head->next = sorted;
+    sorted->prev = head;
+
+    // Find the new tail
+    while (sorted->next)
+        sorted = sorted->next;
+    head->prev = sorted;
+    sorted->next = head;
 }
 
 /* Remove every node which has a node with a strictly less value
