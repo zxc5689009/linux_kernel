@@ -257,6 +257,7 @@ void q_reverseK(struct list_head *head, int k)
     head->prev = tmp;
     tmp->next = head;
 }*/
+struct list_head *mergeSort(struct list_head *left, struct list_head *right);
 struct list_head *split(struct list_head *head)
 {
     if (!head || !head->next)
