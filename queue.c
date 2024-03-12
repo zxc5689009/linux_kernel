@@ -220,33 +220,7 @@ void q_reverseK(struct list_head *head, int k)
     *ptr = (struct list_head *) ((uintptr_t) List1 | (uintptr_t) List2);
     return head;
 }*/
-struct list_head *mergeTwoLists(struct list_head *L1,
-                                struct list_head *L2,
-                                bool descend)
-{
-    struct list_head *head = NULL, **tail = &head;
-
-    while (L1 && L2) {
-        element_t *l1 = list_entry(L1, element_t, list);
-        element_t *l2 = list_entry(L2, element_t, list);
-        // Move the declaration of `comp` inside the loop
-        int comp = strcmp(l1->value, l2->value);
-        if (descend ? comp < 0
-                    : comp > 0) {  // Adjust comparison for descending order
-            *tail = L2;
-            L2 = L2->next;
-        } else {
-            *tail = L1;
-            L1 = L1->next;
-        }
-        tail = &(*tail)->next;
-    }
-
-    *tail = L1 ? L1 : L2;
-    return head;
-}
-
-struct list_head *mergesort_list(struct list_head *head, bool descend)
+/*struct list_head *mergesort_list(struct list_head *head, bool descend)
 {
     if (!head || head->next == head)
         return head;
@@ -266,7 +240,7 @@ struct list_head *mergesort_list(struct list_head *head, bool descend)
     struct list_head *left = mergesort_list(head, descend);
     struct list_head *right = mergesort_list(mid, descend);
     return mergeTwoLists(left, right, descend);
-}
+}*/
 /* Sort elements of queue in ascending/descending order */
 /*void q_sort(struct list_head *head, bool descend)
 {
@@ -283,30 +257,78 @@ struct list_head *mergesort_list(struct list_head *head, bool descend)
     head->prev = tmp;
     tmp->next = head;
 }*/
-void q_sort(struct list_head *head, bool descend)
+struct list_head *split(struct list_head *head)
 {
-    if (!head || head->next == head)
-        return;  // Empty or single element
+    if (!head || !head->next)
+        return head;
 
-    // Break the circular link
-    struct list_head *tail = head->prev;
-    tail->next = NULL;
-    head->prev = NULL;
+    struct list_head *fast = head, *slow = head;
+    while (fast != NULL && fast->next != NULL) {
+        fast = fast->next->next;
+        slow = slow->next;
+    }
 
-    // Sort the list
-    struct list_head *sorted = mergesort_list(head->next, descend);
+    struct list_head *mid = slow;
+    slow->prev->next = NULL;
 
-    // Reattach the sorted list to head and make it circular
-    head->next = sorted;
-    sorted->prev = head;
+    struct list_head *left = split(head);
+    struct list_head *right = split(mid);
 
-    // Find the new tail
-    while (sorted->next)
-        sorted = sorted->next;
-    head->prev = sorted;
-    sorted->next = head;
+    return mergeSort(left, right);
 }
 
+/* merge two sorted linked list */
+struct list_head *mergeSort(struct list_head *left, struct list_head *right)
+{
+    struct list_head *dummy = NULL;
+    struct list_head **indirect = &dummy;
+
+    for (; left && right;) {
+        struct list_head *cur = NULL;
+
+        if (strcmp(list_entry(left, element_t, list)->value,
+                   list_entry(right, element_t, list)->value) >= 0) {
+            cur = right;
+            right = right->next;
+        } else {
+            cur = left;
+            left = left->next;
+        }
+
+        *indirect = cur;
+        indirect = &cur->next;
+    }
+
+    if (left != NULL) {
+        *indirect = left;
+    } else {
+        *indirect = right;
+    }
+
+    return dummy;
+}
+
+/* sort elements of queue in ascending order */
+void q_sort(struct list_head *head, bool descend)
+{
+    if (!head || head->next == head || head->next->next == head) {
+        return;
+    }
+
+    // break the link
+    head->prev->next = NULL;
+    head->next = split(head->next);
+
+    struct list_head *before = head, *after = head->next;
+
+    for (; after != NULL; after = after->next) {
+        after->prev = before;
+        before = after;
+    }
+
+    before->next = head;
+    head->prev = before;
+}
 /* Remove every node which has a node with a strictly less value
  * anywhere to the right side of it */
 int q_ascend(struct list_head *head)
